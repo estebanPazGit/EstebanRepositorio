@@ -1,7 +1,7 @@
 import scrapy
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-from scraperCategory.items import CategoriaCoto
+# from scraperCategory.items import CategoriaCoto
 from scrapy.exceptions import CloseSpider
 from scrapy.loader import ItemLoader
 from selenium import webdriver
@@ -9,7 +9,7 @@ from selenium import webdriver
 class CategoriaSpider(CrawlSpider):
     name = 'categorias'
 
-    driver = webdriver('/home/estebanpaz/FOEX-Proyecto-Dets/scrapping-local/chromedriver')
+    driver = webdriver('./chromedriver.exe')
 
     driver.get('https://www.youtube.com/')
 
