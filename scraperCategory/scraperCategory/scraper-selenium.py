@@ -1,15 +1,17 @@
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 import json
 
-driver = webdriver.Firefox()
-
+# driver = webdriver.Firefox()
+driver = webdriver.Chrome('chromedriver.exe')
+WebDriverWait(driver, timeout=10)
 # categorias y subcategorias de COTO
 
 URL = 'https://www.cotodigital3.com.ar/sitios/cdigi/browse'
 
 driver.get(URL)
 
-categorias_coto_menu = driver.find_elements_by_xpath('//*[@id="atg_store_catNav"]/li')
+categorias_coto_menu = driver.find_elements_by_xpath('//*[@id="atg_store_facets"]/div[1]/div/ul/li')
 
 lista_categorias = []
 lista_subcategorias = []
@@ -30,13 +32,18 @@ def obtenerSubCategorias(url:str, categoria:str, driverFirefox, guardar=False):
     o para obtener los datos a guardar cuando el ultimo parametro es True
     '''
     driverFirefox.get(url)
+    WebDriverWait(driverFirefox, timeout=10)
     categ_scrapeadas = driverFirefox.find_elements_by_xpath('//*[@id="atg_store_facets"]/div[1]/div/ul/li')
     subcategorias_obtenidas = []
     for elem in categ_scrapeadas:
         link_elem = elem.find_element_by_xpath('.//a')
+        print('CATEGORIA')
+        print('###################')
+        print(categoria, ' == ', elem.find_element_by_xpath('.//a').get_attribute('title'))
         if link_elem.get_attribute('title') == categoria:
             link_elem.click()
             url_categoria = driverFirefox.current_url
+            WebDriverWait(driverFirefox, timeout=10)
             if guardar:
                 categs = driverFirefox.find_elements_by_xpath('//*[@id="atg_store_refinementAncestorsLinkCategory"]/a')
                 subcategoria = driverFirefox.find_element_by_xpath('//*[@id="atg_store_refinementAncestorsLastLink"]').text
@@ -62,26 +69,9 @@ def obtenerSubCategorias(url:str, categoria:str, driverFirefox, guardar=False):
 
 # Obtencion de SEGMENTOS
 for categoria in categorias_coto_menu:
-    link_categoria = categoria.find_element_by_xpath('.//a').text
-    if link_categoria != 'Ofertas':
-        lista_categorias.append(link_categoria)
+    link_categoria = categoria.find_element_by_xpath('.//a').get_attribute('title')
+    lista_categorias.append(link_categoria)
 
-
-# lista, url_actual = obtenerSubCategorias(URL, 'Almacén', driver)
-# print('OBTENGO 1')
-# print('lista --> ', lista)
-# print('URL --> ', url_actual)
-# url_a_guardar, catprinc, catsecund, subcateg = obtenerSubCategorias(url_actual, 'Golosinas', driver, guardar=True)
-# print('##################')
-# print(url_a_guardar)
-# print(catprinc)
-# print(catsecund)
-# print(subcateg)
-# lista, url_actual = obtenerSubCategorias(url_actual, 'Golosinas', driver)
-# print('OBTENGO 2')
-# print('lista --> ', lista)
-# print('URL --> ', url_actual)
-# obtenerSubCategorias(url_actual, 'Alfajores', driver, guardar=True)
 
 # Recorrido por SEGMENTOS, CATEGORIAS Y SUBCATEGORIAS
 for categoria_princ in lista_categorias:
