@@ -1,8 +1,10 @@
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
 import json
 
-driver = webdriver.Firefox()
-
+# driver = webdriver.Firefox()
+driver = webdriver.Chrome('chromedriver.exe')
+WebDriverWait(driver, timeout=10)
 # categorias y subcategorias de COTO
 
 URL = 'https://www.cotodigital3.com.ar/sitios/cdigi/browse'
@@ -30,6 +32,7 @@ def obtenerSubCategorias(url:str, categoria:str, driverFirefox, guardar=False):
     o para obtener los datos a guardar cuando el ultimo parametro es True
     '''
     driverFirefox.get(url)
+    WebDriverWait(driverFirefox, timeout=10)
     categ_scrapeadas = driverFirefox.find_elements_by_xpath('//*[@id="atg_store_facets"]/div[1]/div/ul/li')
     subcategorias_obtenidas = []
     for elem in categ_scrapeadas:
@@ -37,6 +40,7 @@ def obtenerSubCategorias(url:str, categoria:str, driverFirefox, guardar=False):
         if link_elem.get_attribute('title') == categoria:
             link_elem.click()
             url_categoria = driverFirefox.current_url
+            WebDriverWait(driverFirefox, timeout=10)
             if guardar:
                 categs = driverFirefox.find_elements_by_xpath('//*[@id="atg_store_refinementAncestorsLinkCategory"]/a')
                 subcategoria = driverFirefox.find_element_by_xpath('//*[@id="atg_store_refinementAncestorsLastLink"]').text
