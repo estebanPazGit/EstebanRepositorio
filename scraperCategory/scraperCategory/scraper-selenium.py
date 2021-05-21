@@ -2,9 +2,11 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 import json
 
-# driver = webdriver.Firefox()
-driver = webdriver.Chrome('chromedriver.exe')
+driver = webdriver.Firefox()
+# driver = webdriver.Chrome('chromedriver.exe')
 WebDriverWait(driver, timeout=10)
+
+
 # categorias y subcategorias de COTO
 
 URL = 'https://www.cotodigital3.com.ar/sitios/cdigi/browse'
