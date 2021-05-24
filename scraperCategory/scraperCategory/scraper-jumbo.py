@@ -6,13 +6,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 
 # deshabilitar geolocalizacion en el navegador
-geoDisabled = webdriver.FirefoxOptions()
-geoDisabled.set_preference("geo.enabled", False)
+# geoDisabled = webdriver.FirefoxOptions()
+# geoDisabled.set_preference("geo.enabled", False)
 
-fp = webdriver.FirefoxProfile()
-fp.set_preference("dom.popup_maximum", 0)
-browser = webdriver.Firefox(options=geoDisabled, firefox_profile=fp)
-browser_extra = webdriver_extra.Firefox(options=geoDisabled, firefox_profile=fp)
+# fp = webdriver.FirefoxProfile()
+# fp.set_preference("dom.popup_maximum", 0)
+# browser = webdriver.Firefox(options=geoDisabled, firefox_profile=fp)
+# browser_extra = webdriver_extra.Firefox(options=geoDisabled, firefox_profile=fp)
+
+
+# browser = webdriver.Chrome('chromedriver.exe')
+
+# browser_extra = webdriver_extra.Chrome()
+
 '''
 browser.get('https://www.jumbo.com.ar/digital')
 WebDriverWait(browser, timeout=20)
@@ -142,55 +148,174 @@ def extraerURL(browser):
     for req in browser.requests:
         if req.response.status_code == 206:
             url = req.url
-            return url
+            return str(url)
 
-def generarListaAGuardar(lista_urls:str, browser):
+def generarListaAGuardar(lista_urls:str):
     lista_resultante = []
-    # browser.get('https://www.jumbo.com.ar')
-    # browser_extra = webdriver_extra.Firefox()
+
+    '''
+    categoria = ''
+    subcategoria = ''
+    segmento = ''
+    '''
+    flag = True
+    lista_cod_categ = []
+    dict_cod_subcateg = {}
+    lista_cod_subcateg = []
     for link in lista_urls:
+        browser = webdriver_extra.Chrome()
+        '''
+        if flag:
+            categoria = link[1]
+            subcategoria = link[2]
+            segmento = link[3]
+            browser.get(link[0])
+            WebDriverWait(browser, timeout=20)
+            url = extraerURL(browser)
+            solicitud = requests.get(url)
+            solicitud_json = solicitud.json()
+            print("solicitud_json[0]['categoriesIds'][0] ---> ", solicitud_json[0]['categoriesIds'][0])
+            flag = False
+        else:
+            categ_aux = link[1]
+            subcateg_aux = link[2]
+            seg_aux = link[3]
+
+            if (categ_aux == categoria and subcateg_aux != subcategoria) or (categ_aux != categoria):
+                browser.get(link[0])
+                WebDriverWait(browser, timeout=20)
+                url = extraerURL(browser)
+                solicitud = requests.get(url)
+                solicitud_json = solicitud.json()
+                print("solicitud_json[0]['categoriesIds'][0] ---> ", solicitud_json[0]['categoriesIds'][0])
+            else:
+                print('incremento el numero del segmento', seg_aux)
+
+            print('\n')
+        '''
+
+
         browser.get(link)
         # WebDriverWait(browser, timeout=20)
         url = extraerURL(browser)
         solicitud = requests.get(url)
         solicitud_json = solicitud.json()
-        lista_cod_categ = []
-        dict_cod_subcateg = []
-        # lista_cod_categ.append(url)
-        # for categ, num in zip(solicitud_json[0]['categories'], solicitud_json[0]['categoriesIds']):
-            # lista_cod_categ.append(parserCategorias(categ))
+        browser.quit()
 
         print("solicitud_json[0]['categoriesIds'][0] ---> ", solicitud_json[0]['categoriesIds'][0])
-        flag = True
-        # for categ in solicitud_json[0]['categoriesIds'][0]:
-            # cod_categoria = obtenerNumCategoria(categ)
-            # print('cod_categoria --> ', cod_categoria)
-            # cod_subcategorias = obtenerNumSubcategoria(categ)
-            # print('cod_subcategorias --> ', cod_subcategorias)
-            # if flag:
-                # lista_cod_categ.append(cod_categoria)
-                # dict_cod_subcateg.append(cod_subcategorias)
-            # elif not cod_categoria in lista_cod_categ:
-                # lista_cod_categ.append(cod_categoria)
-                # dict_cod_subcateg.append(cod_subcategorias)
-            # else:
-                # dict_cod_subcateg.append(cod_subcategorias)
 
+        cod_categoria = obtenerNumCategoria(solicitud_json[0]['categoriesIds'][0])
+        codigos_subcateg = obtenerNumSubcategoria(solicitud_json[0]['categoriesIds'][0])
+
+        if flag:
+            lista_cod_categ.append(cod_categoria)
+            lista_cod_subcateg.append(codigos_subcateg)
+            flag = False
+        elif cod_categoria in lista_cod_categ:
+            lista_cod_subcateg.append(codigos_subcateg)
+        else:
+            dict_cod_subcateg[cod_categoria-1] = lista_cod_subcateg
+            lista_cod_subcateg = []
+            lista_cod_categ.append(cod_categoria)
+        print('\n')
+        print('La lista de codigos de categorias --> ', lista_cod_categ)
+        print('la lista de codigos de subcategorias --> ', lista_cod_subcateg)
+        print('diccionario de codigos de subcateg --> ', dict_cod_subcateg)
+        print('\n')
+
+    if len(lista_cod_categ) == 1:
+        dict_cod_subcateg[cod_categoria-1] = lista_cod_subcateg
     # return lista_resultante
     return lista_cod_categ, dict_cod_subcateg
 
 lista_test = [
-    "https://www.jumbo.com.ar/almacen/aceites-y-vinagres",
-    "https://www.jumbo.com.ar/almacen/aderezos",
-    "https://www.jumbo.com.ar/almacen/arroz-y-legumbres"
+    [
+        "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/aceites-comunes",
+        "Almacén",
+        "Aceites y Vinagres",
+        "Aceites Comunes"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/aceites-especiales",
+        "Almacén",
+        "Aceites y Vinagres",
+        "Aceites Especiales"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/acetos",
+        "Almacén",
+        "Aceites y Vinagres",
+        "Acetos"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/jugos-de-limon",
+        "Almacén",
+        "Aceites y Vinagres",
+        "Jugos de Limón"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/vinagres",
+        "Almacén",
+        "Aceites y Vinagres",
+        "Vinagres"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aderezos/mayonesas",
+        "Almacén",
+        "Aderezos",
+        "Mayonesas"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aderezos/ketchup",
+        "Almacén",
+        "Aderezos",
+        "Ketchup"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aderezos/mostazas",
+        "Almacén",
+        "Aderezos",
+        "Mostazas"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aderezos/salsas-golf",
+        "Almacén",
+        "Aderezos",
+        "Salsas Golf"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aderezos/salsas-frias",
+        "Almacén",
+        "Aderezos",
+        "Salsas Frías"
+    ],
+    [
+        "https://www.jumbo.com.ar/almacen/aderezos/otros-condimentos",
+        "Almacén",
+        "Aderezos",
+        "Otros Condimentos"
+    ]
 ]
 
-datos_a_guardar, datos = generarListaAGuardar(lista_test, browser_extra)
+lista_test = [
+    "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/aceites-comunes",
+    "https://www.jumbo.com.ar/almacen/aceites-y-vinagres/aceites-especiales",
+    "https://www.jumbo.com.ar/almacen/aderezos/otros-condimentos"
+]
 
+# datos_a_guardar, datos = generarListaAGuardar(lista_test, browser_extra)
 
+datos_a_guardar, datos = generarListaAGuardar(lista_test)
+
+print('$$$$$$$$$$$$$$$$$$$$$$$$$')
+print(datos_a_guardar)
+print('$$$$$$$$$$$$$$$$$$$$$$$$$')
+print(datos)
+
+'''
 with open('categoriasJumbo2.json', 'a', encoding='utf8') as file:
     json.dump(datos_a_guardar, file, indent=4, ensure_ascii=False)
 
 with open('categoriasJumbo2.json', 'a', encoding='utf8') as file:
     json.dump(datos, file, indent=4, ensure_ascii=False)
-
+'''
